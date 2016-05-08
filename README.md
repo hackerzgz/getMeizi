@@ -1,5 +1,7 @@
 #GetMeizi#
 
+![image](https://github.com/HackeZ/getMeizi/blob/master/img/head.jpg)
+
 ###同样是并发练手项目，我将使用gank.io的API接口并发下载妹子图片##
 
 ###因为本项目在Windows平台下出现了不可预知的错误，所以先将项目放上来，逐渐解决问题，同样欢迎大家能够帮我看看怎么解决错误。谢谢！###
