@@ -9,6 +9,7 @@ import (
 	// "path/filepath"
 	"bytes"
 	"io"
+	"time"
 )
 
 // 注意，转换JSON的时候首字母必须大写，否则转换不成功
@@ -30,38 +31,82 @@ type resultObject struct {
 }
 
 const (
-	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
+	// baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/5/1"
+	baseURL = "http://7xltko.com1.z0.glb.clouddn.com/gank.io"
 	// returnCount = 10
 	// pageNum = 1
 )
 
-func main() {
+var (
+	FilePath string
+)
 
+func init() {
+	if len(os.Args) < 2 {
+		fmt.Printf("%s", "Please set up the download path:")
+		fmt.Scanf("%s", &FilePath)
+	} else {
+		FilePath = os.Args[1]
+	}
+}
+
+func main() {
+	// init Var
+	t0 := time.Now()
+	Schedule := make(chan byte, 10)
+
+	// Get the API Data
 	res, err := http.Get(baseURL)
 	defer res.Body.Close()
 	if err != nil {
-		fmt.Println("API地址读取出错 --> ", baseURL)
+		fmt.Println("Read API Address Error --> ", baseURL)
 		fmt.Println("Error --> ", err.Error())
 		return
 	}
 	body, _ := ioutil.ReadAll(res.Body)
-	// fmt.Println("body --> ", string(body))
 
+	// JSON 2 Struct
 	var apiResult APIJSON
 	if err1 := json.Unmarshal(body, &apiResult); err1 != nil {
-		fmt.Println("JSON数据转换出错 --> ", err.Error())
+		fmt.Println("JSON Data Translate Error --> ", err1.Error())
 	}
 
+	// init Channel
+	// make sure the Channel have enough element
+	for i := 0; i < len(apiResult.Results); i++ {
+		Schedule <- 0
+	}
+	// download images
 	for i := 0; i < len(apiResult.Results); i++ {
 		fmt.Println(i, " --> ", apiResult.Results[i].URL)
-		SaveImage(apiResult.Results[i].URL, apiResult.Results[i].ID)
+		if isExist(FilePath + apiResult.Results[i].ID + ".jpg") {
+			fmt.Println(apiResult.Results[i].ID+".jpg", " Has been download!")
+			// out!
+			<-Schedule
+			continue
+		}
+		go SaveImage(apiResult.Results[i].URL, apiResult.Results[i].ID, Schedule)
 	}
+
+	for {
+		fmt.Println("Len --> ", len(Schedule))
+		if len(Schedule) == 0 {
+			break
+		}
+	}
+	t1 := time.Now()
+	fmt.Println("used time --> ", t1.Sub(t0).String())
 	fmt.Println("Done!")
 }
 
-// SaveImage 传入URL地址，获取网络图片（后期可能改成并发的）
-func SaveImage(url, filename string) (n int64, err error) {
-	out, err := os.Create(filename + ".jpg")
+// SaveImage 传入URL地址，获取网络图片
+func SaveImage(url, filename string, sche <-chan byte) (n int64, err error) {
+	DirExists(FilePath)
+	out, err := os.Create(FilePath + filename + ".jpg")
+	if err != nil {
+		fmt.Println("%s File Create Failed!", FilePath+filename+".jpg")
+		return
+	}
 	defer out.Close()
 
 	resp, err := http.Get(url)
@@ -73,20 +118,35 @@ func SaveImage(url, filename string) (n int64, err error) {
 	defer resp.Body.Close()
 	pix, err := ioutil.ReadAll(resp.Body)
 	n, err = io.Copy(out, bytes.NewReader(pix))
+	// out!
+	<-sche
 	return
-	// if err != nil {
-	//     // fmt.Println("保存", filename, "图片出错！ URL --> ", url)
-	//     fmt.Println("Error --> ", err)
-	// }
-	// fmt.Println(resp.Body)
-	// // 下载并保存
-	// //根据URL文件名创建文件
-	// // filename = filepath.Base()
-	// dst, err := os.Create(filename)
-	// if err != nil {
-	//     fmt.Printf("%s HTTP ERROR:%s\n", filename, err)
-	//     return
-	// }
-	// // 写入文件
-	// io.Copy(dst, res.Body)
+}
+
+// isExist Check the File has been Existed
+func isExist(fileName string) bool {
+	_, err := os.Stat(fileName)
+	return err == nil || os.IsExist(err)
+}
+
+// DirExists Check the Dir has been Existed
+// and Create it if not Existed
+func DirExists(path string) bool {
+	p, err := os.Stat(path)
+	if err != nil {
+		_ = os.Mkdir(path, 0777)
+		return true
+	} else {
+		return p.IsDir()
+	}
+}
+
+// CreateDir Mean Mkdir 0755
+func CreateDir(path string) bool {
+	err := os.Mkdir(path, 0755)
+	if err != nil {
+		return os.IsExist(err)
+	} else {
+		return true
+	}
 }
