@@ -6,13 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	// "path/filepath"
 	"bytes"
 	"io"
 	"time"
 )
 
-// 注意，转换JSON的时候首字母必须大写，否则转换不成功
+// APIJSON 注意，转换JSON的时候首字母必须大写，否则转换不成功
 type APIJSON struct {
 	Err     bool           `json:"error"`
 	Results []resultObject `json:"results"`
@@ -31,14 +30,14 @@ type resultObject struct {
 }
 
 const (
-	// baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/5/1"
-	baseURL = "http://7xltko.com1.z0.glb.clouddn.com/gank.io"
+	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/5/1"
+	// baseURL = "http://7xltko.com1.z0.glb.clouddn.com/gank.io"
 	// returnCount = 10
 	// pageNum = 1
 )
 
 var (
-	FilePath string
+	FilePath string // Set Download Path
 )
 
 func init() {
@@ -104,7 +103,7 @@ func SaveImage(url, filename string, sche <-chan byte) (n int64, err error) {
 	DirExists(FilePath)
 	out, err := os.Create(FilePath + filename + ".jpg")
 	if err != nil {
-		fmt.Println("%s File Create Failed!", FilePath+filename+".jpg")
+		fmt.Printf("%s File Create Failed!\n", FilePath+filename+".jpg")
 		return
 	}
 	defer out.Close()
@@ -134,19 +133,17 @@ func isExist(fileName string) bool {
 func DirExists(path string) bool {
 	p, err := os.Stat(path)
 	if err != nil {
-		_ = os.Mkdir(path, 0777)
+		_ = os.Mkdir(path, 0755)
 		return true
-	} else {
-		return p.IsDir()
 	}
+	return p.IsDir()
 }
 
 // CreateDir Mean Mkdir 0755
-func CreateDir(path string) bool {
-	err := os.Mkdir(path, 0755)
-	if err != nil {
-		return os.IsExist(err)
-	} else {
-		return true
-	}
-}
+// func CreateDir(path string) bool {
+// 	err := os.Mkdir(path, 0755)
+// 	if err != nil {
+// 		return os.IsExist(err)
+// 	}
+// 	return true
+// }
