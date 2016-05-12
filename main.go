@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 	"os"
 	"bytes"
+	"regexp"
 	"io"
 	"time"
 )
@@ -30,14 +33,15 @@ type resultObject struct {
 }
 
 const (
-	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/5/1"
-	// baseURL = "http://7xltko.com1.z0.glb.clouddn.com/gank.io"
-	// returnCount = 10
-	// pageNum = 1
+	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/15/1"
+	// MaxGORO The Max Goroutine
+	MaxGORO = 3
 )
 
 var (
-	FilePath string // Set Download Path
+	// FilePath Set Download Path
+	FilePath string
+	sign chan byte
 )
 
 func init() {
@@ -52,7 +56,21 @@ func init() {
 func main() {
 	// init Var
 	t0 := time.Now()
-	Schedule := make(chan byte, 10)
+	Schedule := make(chan byte, MaxGORO)
+	
+	// Must Know How many Picture you Download!
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		fmt.Println("Your BaseURL is Wrong! Fix it!")
+	}
+	// Get The Download Picture Count
+	reg := regexp.MustCompile(`[^\D]+`)
+	count, err := strconv.Atoi(reg.FindAllString(u.Path, -1)[0])
+	if err != nil {
+		fmt.Println("Your BaseURL is Wrong! I don't konw how many Picture you want!")
+	}
+	fmt.Println(count, "Picture Download Now!")
+	sign = make(chan byte, count)
 
 	// Get the API Data
 	res, err := http.Get(baseURL)
@@ -72,34 +90,44 @@ func main() {
 
 	// init Channel
 	// make sure the Channel have enough element
-	for i := 0; i < len(apiResult.Results); i++ {
+	for i := 0; i < cap(Schedule); i++ {
 		Schedule <- 0
 	}
+	
+	
+	
 	// download images
 	for i := 0; i < len(apiResult.Results); i++ {
-		fmt.Println(i, " --> ", apiResult.Results[i].URL)
-		if isExist(FilePath + apiResult.Results[i].ID + ".jpg") {
-			fmt.Println(apiResult.Results[i].ID+".jpg", " Has been download!")
-			// out!
-			<-Schedule
-			continue
+		select {
+			case <-Schedule:
+				HandleDown(i, apiResult.Results[i], Schedule)
 		}
-		go SaveImage(apiResult.Results[i].URL, apiResult.Results[i].ID, Schedule)
 	}
 
-	for {
-		fmt.Println("Len --> ", len(Schedule))
-		if len(Schedule) == 0 {
-			break
-		}
+	for i := 0; i < cap(sign); i++ {
+		<-sign
 	}
+	// time.Sleep(10*time.Second)
 	t1 := time.Now()
 	fmt.Println("used time --> ", t1.Sub(t0).String())
 	fmt.Println("Done!")
 }
 
+// HandleDown Handle Download in one Func
+func HandleDown(i int, result resultObject, Schedule chan<- byte)  {
+	fmt.Println(i, " --> ", result.URL)
+		if isExist(FilePath + result.ID + ".jpg") {
+			fmt.Println(result.ID+".jpg", " Has been download!")
+			// out!
+			Schedule <- 0
+			sign <- 0
+			return
+		}
+		go SaveImage(result.URL, result.ID, Schedule)
+}
+
 // SaveImage 传入URL地址，获取网络图片
-func SaveImage(url, filename string, sche <-chan byte) (n int64, err error) {
+func SaveImage(url, filename string, sche chan<- byte) (n int64, err error) {
 	DirExists(FilePath)
 	out, err := os.Create(FilePath + filename + ".jpg")
 	if err != nil {
@@ -118,7 +146,8 @@ func SaveImage(url, filename string, sche <-chan byte) (n int64, err error) {
 	pix, err := ioutil.ReadAll(resp.Body)
 	n, err = io.Copy(out, bytes.NewReader(pix))
 	// out!
-	<-sche
+	sche <- 0
+	sign <- 0
 	return
 }
 
@@ -138,12 +167,3 @@ func DirExists(path string) bool {
 	}
 	return p.IsDir()
 }
-
-// CreateDir Mean Mkdir 0755
-// func CreateDir(path string) bool {
-// 	err := os.Mkdir(path, 0755)
-// 	if err != nil {
-// 		return os.IsExist(err)
-// 	}
-// 	return true
-// }
