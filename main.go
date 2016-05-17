@@ -10,6 +10,7 @@ import (
 	"os"
 	"bytes"
 	"regexp"
+	"sync"
 	"io"
 	"time"
 )
@@ -33,7 +34,7 @@ type resultObject struct {
 }
 
 const (
-	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/15/1"
+	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
 	// MaxGORO The Max Goroutine
 	MaxGORO = 3
 )
@@ -41,7 +42,7 @@ const (
 var (
 	// FilePath Set Download Path
 	FilePath string
-	sign chan byte
+	wg sync.WaitGroup
 )
 
 func init() {
@@ -70,7 +71,7 @@ func main() {
 		fmt.Println("Your BaseURL is Wrong! I don't konw how many Picture you want!")
 	}
 	fmt.Println(count, "Picture Download Now!")
-	sign = make(chan byte, count)
+	wg.Add(count)
 
 	// Get the API Data
 	res, err := http.Get(baseURL)
@@ -101,12 +102,13 @@ func main() {
 		select {
 			case <-Schedule:
 				HandleDown(i, apiResult.Results[i], Schedule)
+			case <- time.After(2 * time.Second):
+				fmt.Println("Time out!")
+				wg.Done()
 		}
 	}
 
-	for i := 0; i < cap(sign); i++ {
-		<-sign
-	}
+	wg.Wait()
 	// time.Sleep(10*time.Second)
 	t1 := time.Now()
 	fmt.Println("used time --> ", t1.Sub(t0).String())
@@ -120,7 +122,7 @@ func HandleDown(i int, result resultObject, Schedule chan<- byte)  {
 			fmt.Println(result.ID+".jpg", " Has been download!")
 			// out!
 			Schedule <- 0
-			sign <- 0
+			wg.Done()
 			return
 		}
 		go SaveImage(result.URL, result.ID, Schedule)
@@ -147,7 +149,7 @@ func SaveImage(url, filename string, sche chan<- byte) (n int64, err error) {
 	n, err = io.Copy(out, bytes.NewReader(pix))
 	// out!
 	sche <- 0
-	sign <- 0
+	wg.Done()
 	return
 }
 

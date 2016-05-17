@@ -6,9 +6,9 @@
 
 ###Usage###
 
-> go build -o getMeizi main.go
+> $ go build -o getMeizi main.go
 
-> ./getMeizi /**download path**/
+> $ ./getMeizi  /**download path**/
 
 ----
 
@@ -29,15 +29,23 @@
 
 5. 通过正则表达式智能匹配到BaseURL中下载图片的张数，防止出现线程出现 **无限阻塞** 现象。
 
+6. 添加 **响应超时提醒**
+
+7. 将非缓存通道 sign 换成 WaitGroup
+
 ###接下来我想做的有：###
 
 > 1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
 
+> 2. 将MaxGoro设置为 -1 ，即表示无限制Goroutine上限。
+
 
 ##Download Used Time(10 picture)##
 
-1. 10.674s
+1. 10.674s --> linear
 
-2. 5.649s
+2. 5.649s  --> set MaxGoro 3
 
-3. 3.760s
+3. 3.760s  --> MaxGoro is ∞
+
+4. 5.709s  --> trans chan byte to WaitGroup 
