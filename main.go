@@ -34,6 +34,7 @@ type resultObject struct {
 }
 
 const (
+	// baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
 	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
 	// MaxGORO The Max Goroutine
 	MaxGORO = 3
@@ -57,7 +58,6 @@ func init() {
 func main() {
 	// init Var
 	t0 := time.Now()
-	Schedule := make(chan byte, MaxGORO)
 	
 	// Must Know How many Picture you Download!
 	u, err := url.Parse(baseURL)
@@ -89,6 +89,13 @@ func main() {
 		fmt.Println("JSON Data Translate Error --> ", err1.Error())
 	}
 
+	var MaxGo int
+	if MaxGORO == -1 {
+		MaxGo = count
+	} else {
+		MaxGo = MaxGORO
+	}
+	Schedule := make(chan byte, MaxGo)
 	// init Channel
 	// make sure the Channel have enough element
 	for i := 0; i < cap(Schedule); i++ {
@@ -144,6 +151,10 @@ func SaveImage(url, filename string, sche chan<- byte) (n int64, err error) {
 		fmt.Println(err)
 		fmt.Println("=== Error ===")
 	}
+	// Here I can Get the images ContentLength,
+	// But the io.Copy have a private methon,
+	// I can not get the Buffer Progress.
+	fmt.Printf("ContextLength --> %d\n", resp.ContentLength)
 	defer resp.Body.Close()
 	pix, err := ioutil.ReadAll(resp.Body)
 	n, err = io.Copy(out, bytes.NewReader(pix))

@@ -33,11 +33,13 @@
 
 7. 将非缓存通道 sign 换成 WaitGroup
 
+8. 将MaxGoro设置为 -1 ，即表示无限制Goroutine上限。
+
 ###Next Step：###
 
 > 1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
 
-> 2. 将MaxGoro设置为 -1 ，即表示无限制Goroutine上限。
+> 2. 显示下载进程。
 
 
 ##Download Used Time(10 picture)##
@@ -46,6 +48,6 @@
 
 2. 5.649s  --> set MaxGoro 3
 
-3. 3.760s  --> MaxGoro is ∞
+3. 3.760s  --> MaxGoro be equal to Total Download Task
 
 4. 5.709s  --> trans chan byte to WaitGroup 
