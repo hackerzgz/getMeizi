@@ -1,17 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"os"
-	"bytes"
 	"regexp"
+	"strconv"
 	"sync"
-	"io"
 	"time"
 )
 
@@ -43,7 +43,7 @@ const (
 var (
 	// FilePath Set Download Path
 	FilePath string
-	wg sync.WaitGroup
+	wg       sync.WaitGroup
 )
 
 func init() {
@@ -58,13 +58,13 @@ func init() {
 func main() {
 	// init Var
 	t0 := time.Now()
-	
+
 	// Must Know How many Picture you Download!
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		fmt.Println("Your BaseURL is Wrong! Fix it!")
 	}
-	// Get The Download Picture Count
+	// Get The Number of Download Picture.
 	reg := regexp.MustCompile(`[^\D]+`)
 	count, err := strconv.Atoi(reg.FindAllString(u.Path, -1)[0])
 	if err != nil {
@@ -89,6 +89,7 @@ func main() {
 		fmt.Println("JSON Data Translate Error --> ", err1.Error())
 	}
 
+	// Set the MaxGo
 	var MaxGo int
 	if MaxGORO == -1 {
 		MaxGo = count
@@ -101,17 +102,15 @@ func main() {
 	for i := 0; i < cap(Schedule); i++ {
 		Schedule <- 0
 	}
-	
-	
-	
+
 	// download images
 	for i := 0; i < len(apiResult.Results); i++ {
 		select {
-			case <-Schedule:
-				HandleDown(i, apiResult.Results[i], Schedule)
-			case <- time.After(2 * time.Second):
-				fmt.Println("Time out!")
-				wg.Done()
+		case <-Schedule:
+			HandleDown(i, apiResult.Results[i], Schedule)
+		case <-time.After(2 * time.Second):
+			fmt.Println("Time out!")
+			wg.Done()
 		}
 	}
 
@@ -123,19 +122,19 @@ func main() {
 }
 
 // HandleDown Handle Download in one Func
-func HandleDown(i int, result resultObject, Schedule chan<- byte)  {
+func HandleDown(i int, result resultObject, Schedule chan<- byte) {
 	fmt.Println(i, " --> ", result.URL)
-		if isExist(FilePath + result.ID + ".jpg") {
-			fmt.Println(result.ID+".jpg", " Has been download!")
-			// out!
-			Schedule <- 0
-			wg.Done()
-			return
-		}
-		go SaveImage(result.URL, result.ID, Schedule)
+	if isExist(FilePath + result.ID + ".jpg") {
+		fmt.Println(result.ID+".jpg", " Has been download!")
+		// out!
+		Schedule <- 0
+		wg.Done()
+		return
+	}
+	go SaveImage(result.URL, result.ID, Schedule)
 }
 
-// SaveImage 传入URL地址，获取网络图片
+// SaveImage Passing URL Location, Get Network Picture.
 func SaveImage(url, filename string, sche chan<- byte) (n int64, err error) {
 	DirExists(FilePath)
 	out, err := os.Create(FilePath + filename + ".jpg")
