@@ -6,18 +6,16 @@
 
 ###Usage###
 
-> $ go build -o getMeizi main.go
+```
+$ go build -o getMeizi main.go
+$ ./getMeizi  /**download path**/
+```
 
-> $ ./getMeizi  /**download path**/
 
-----
+### 本项目同时适用于Windows以及Linux平台，如果你在Windows平台中出现下载错误，请关闭包括360安全卫士、百度卫士、腾讯管家在内的“杀毒软件”！
 
 
-###本项目同时适用于Windows以及Linux平台，如果你在Windows平台中出现下载错误，请关闭包括360安全卫士、百度卫士、腾讯管家在内的“杀毒软件”！###
-
-> P.S. 因为Windows以及Linux操作系统不同，指定的download path请自行参考对应的操作系统命令
-
-###Done：###
+### Done：
 
 1. 指定下载路径完成。
 
@@ -35,14 +33,13 @@
 
 8. 将MaxGoro设置为 -1 ，即表示无限制Goroutine上限。
 
-###Next Step：###
+### Next Step：
 
-> 1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
+1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
+2. 显示下载进程。
 
-> 2. 显示下载进程。
 
-
-##Download Used Time(10 picture)##
+##Download Used Time(10 pictures)##
 
 1. 10.674s --> linear
 
