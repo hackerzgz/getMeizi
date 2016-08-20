@@ -48,7 +48,7 @@ var (
 
 func init() {
 	if len(os.Args) < 2 {
-		fmt.Printf("%s", "Please set up the download path:")
+		fmt.Printf("Please set up the Download Path:")
 		fmt.Scanf("%s", &FilePath)
 	} else {
 		FilePath = os.Args[1]
@@ -56,6 +56,10 @@ func init() {
 }
 
 func main() {
+
+	if FilePath == "" {
+		os.Exit(-1)
+	}
 	// init Var
 	t0 := time.Now()
 
@@ -124,6 +128,11 @@ func main() {
 // HandleDown Handle Download in one Func
 func HandleDown(i int, result resultObject, Schedule chan<- byte) {
 	fmt.Println(i, " --> ", result.URL)
+
+	// Check Dir Path Vaild
+	FilePath = CheckDirPathVaild(FilePath)
+	fmt.Println("FilePath -->", FilePath)
+
 	if isExist(FilePath + result.ID + ".jpg") {
 		fmt.Println(result.ID+".jpg", " Has been download!")
 		// out!
@@ -171,6 +180,8 @@ func isExist(fileName string) bool {
 
 // DirExists Check the Dir has been Existed
 // and Create it if not Existed
+// @param path string
+// @return status bool
 func DirExists(path string) bool {
 	p, err := os.Stat(path)
 	if err != nil {
@@ -178,4 +189,15 @@ func DirExists(path string) bool {
 		return true
 	}
 	return p.IsDir()
+}
+
+// CheckDirPathVaild Check typing File Path is Vaild.
+// @param filepath string
+// @return filepath + '/'
+func CheckDirPathVaild(filepath string) string {
+	fpByte := []byte(filepath)
+	if fpByte[len(fpByte)-1] != '/' {
+		fpByte = append(fpByte, '/')
+	}
+	return string(fpByte)
 }
