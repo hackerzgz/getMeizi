@@ -39,7 +39,7 @@ $ ./getMeizi  /**download path**/
 2. 显示下载进程。
 
 
-##Download Used Time(10 pictures)##
+## Download Used Time(10 pictures)
 
 1. 10.674s --> linear
 
@@ -47,4 +47,7 @@ $ ./getMeizi  /**download path**/
 
 3. 3.760s  --> MaxGoro be equal to Total Download Task
 
-4. 5.709s  --> trans chan byte to WaitGroup 
+4. 5.709s  --> trans chan byte to WaitGroup
+
+## Docker
+[getmeizi](https://hub.docker.com/r/hackerz/getmeizi/) 
