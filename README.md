@@ -12,8 +12,6 @@ $ ./getMeizi  /**download path**/
 ```
 
 
-### 本项目同时适用于Windows以及Linux平台，如果你在Windows平台中出现下载错误，请关闭包括360安全卫士、百度卫士、腾讯管家在内的“杀毒软件”！
-
 
 ### Done：
 
