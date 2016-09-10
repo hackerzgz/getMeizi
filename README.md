@@ -7,8 +7,8 @@
 ###Usage###
 
 ```
-$ go build -o getMeizi main.go
-$ ./getMeizi  /**download path**/
+$ go get -u github.com/hackez/getmeizi
+$ $GOPATH/bin/getMeizi  -r `DownloadPath` -ims `DownloadImagesNumber` -page `DownloadImagesPage`
 ```
 
 
@@ -31,6 +31,8 @@ $ ./getMeizi  /**download path**/
 
 8. 将MaxGoro设置为 -1 ，即表示无限制Goroutine上限。
 
+9. 将 flag 升级了可配置项
+
 ### Next Step：
 
 1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
@@ -46,6 +48,8 @@ $ ./getMeizi  /**download path**/
 3. 3.760s  --> MaxGoro be equal to Total Download Task
 
 4. 5.709s  --> trans chan byte to WaitGroup
+
+5. 2.991s  --> flag insert regexp
 
 ## Docker
 [getmeizi](https://hub.docker.com/r/hackerz/getmeizi/) 

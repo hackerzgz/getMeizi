@@ -3,13 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"regexp"
 	"strconv"
 	"sync"
 	"time"
@@ -35,53 +34,46 @@ type resultObject struct {
 
 const (
 	// baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
-	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
+	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9"
 	// MaxGORO The Max Goroutine
 	MaxGORO = 3
 )
 
 var (
-	// FilePath Set Download Path
-	FilePath string
+	// FilePath Set Download Path.
+	FilePath = flag.String("r", ".", "-r set of download images path.")
+	// downImages Set Download Number.
+	downImages = flag.String("ims", "10", "-ims set of download images number.")
+	// downPage Set images Page.
+	downPage = flag.String("page", "1", "-page set of images pages.")
 	wg       sync.WaitGroup
 )
 
 func init() {
-	if len(os.Args) < 2 {
-		fmt.Printf("Please set up the Download Path:")
-		fmt.Scanf("%s", &FilePath)
-	} else {
-		FilePath = os.Args[1]
+	// init var.
+	flag.Parse()
+
+	if *FilePath == "" {
+		os.Exit(-1)
 	}
+	fmt.Println("Download ", *downImages, "images to \"", *FilePath, "\"Now!")
 }
 
 func main() {
-
-	if FilePath == "" {
-		os.Exit(-1)
-	}
-	// init Var
+	// Log time t0
 	t0 := time.Now()
 
-	// Must Know How many Picture you Download!
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		fmt.Println("Your BaseURL is Wrong! Fix it!")
-	}
-	// Get The Number of Download Picture.
-	reg := regexp.MustCompile(`[^\D]+`)
-	count, err := strconv.Atoi(reg.FindAllString(u.Path, -1)[0])
-	if err != nil {
-		fmt.Println("Your BaseURL is Wrong! I don't konw how many Picture you want!")
-	}
-	fmt.Println(count, "Picture Download Now!")
+	downURL := baseURL + "/" + *downImages + "/" + *downPage
+	count, err := strconv.Atoi(*downImages)
+
+	fmt.Println(*downImages, "Images Download Now!")
 	wg.Add(count)
 
 	// Get the API Data
-	res, err := http.Get(baseURL)
+	res, err := http.Get(downURL)
 	defer res.Body.Close()
 	if err != nil {
-		fmt.Println("Read API Address Error --> ", baseURL)
+		fmt.Println("Read API Address Error --> ", downURL)
 		fmt.Println("Error --> ", err.Error())
 		return
 	}
@@ -127,13 +119,11 @@ func main() {
 
 // HandleDown Handle Download in one Func
 func HandleDown(i int, result resultObject, Schedule chan<- byte) {
-	fmt.Println(i, " --> ", result.URL)
-
 	// Check Dir Path Vaild
-	FilePath = CheckDirPathVaild(FilePath)
-	fmt.Println("FilePath -->", FilePath)
+	*FilePath = CheckDirPathVaild(*FilePath)
+	fmt.Println("FilePath -->", *FilePath)
 
-	if isExist(FilePath + result.ID + ".jpg") {
+	if isExist(*FilePath + result.ID + ".jpg") {
 		fmt.Println(result.ID+".jpg", " Has been download!")
 		// out!
 		Schedule <- 0
@@ -145,10 +135,10 @@ func HandleDown(i int, result resultObject, Schedule chan<- byte) {
 
 // SaveImage Passing URL Location, Get Network Picture.
 func SaveImage(url, filename string, sche chan<- byte) (n int64, err error) {
-	DirExists(FilePath)
-	out, err := os.Create(FilePath + filename + ".jpg")
+	DirExists(*FilePath)
+	out, err := os.Create(*FilePath + filename + ".jpg")
 	if err != nil {
-		fmt.Printf("%s File Create Failed!\n", FilePath+filename+".jpg")
+		fmt.Printf("%s File Create Failed!\n", *FilePath+filename+".jpg")
 		return
 	}
 	defer out.Close()
