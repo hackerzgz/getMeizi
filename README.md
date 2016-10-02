@@ -8,8 +8,12 @@
 
 ```
 $ go get -u github.com/hackez/getmeizi
-$ $GOPATH/bin/getMeizi  -r `DownloadPath` -ims `DownloadImagesNumber` -page `DownloadImagesPage`
+$ $GOPATH/bin/getMeizi --help # READ COMMAND HELP
 ```
+
+## Dependence
+
+- [kingpan](https://github.com/alecthomas/kingpin)
 
 
 
@@ -33,6 +37,8 @@ $ $GOPATH/bin/getMeizi  -r `DownloadPath` -ims `DownloadImagesNumber` -page `Dow
 
 9. 将 flag 升级了可配置项
 
+10. 将 flag 升级为 **kingpan**
+
 ### Next Step：
 
 1. 按照妹子的姓名生成文件夹，然后将该妹子对应的图片存放起来。
@@ -52,4 +58,5 @@ $ $GOPATH/bin/getMeizi  -r `DownloadPath` -ims `DownloadImagesNumber` -page `Dow
 5. 2.991s  --> flag insert regexp
 
 ## Docker
+
 [getmeizi](https://hub.docker.com/r/hackerz/getmeizi/) 

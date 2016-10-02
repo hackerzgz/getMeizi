@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // APIJSON 注意，转换JSON的时候首字母必须大写，否则转换不成功
@@ -33,25 +34,28 @@ type resultObject struct {
 }
 
 const (
+	// Application Version
+	Version = "1.2.0"
 	// baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/10/1"
 	baseURL = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9"
-	// MaxGORO The Max Goroutine
-	MaxGORO = 3
 )
 
 var (
 	// FilePath Set Download Path.
-	FilePath = flag.String("r", ".", "-r set of download images path.")
+	FilePath = kingpin.Flag("root", "set up download images root.").Short('r').Required().String()
 	// downImages Set Download Number.
-	downImages = flag.String("ims", "10", "-ims set of download images number.")
+	downImages = kingpin.Flag("images", "set up the number of download images").Short('n').Default("10").String()
 	// downPage Set images Page.
-	downPage = flag.String("page", "1", "-page set of images pages.")
-	wg       sync.WaitGroup
+	downPage = kingpin.Flag("page", "set up the page of api.").Short('p').Default("1").String()
+	// MaxGORO The Max Goroutine
+	MaxGORO = kingpin.Flag("maxg", "set up max download process.").Short('g').Default("3").Int()
+	wg      sync.WaitGroup
 )
 
 func init() {
 	// init var.
-	flag.Parse()
+	kingpin.Version(Version)
+	kingpin.Parse()
 
 	if *FilePath == "" {
 		os.Exit(-1)
@@ -87,10 +91,10 @@ func main() {
 
 	// Set the MaxGo
 	var MaxGo int
-	if MaxGORO == -1 {
+	if *MaxGORO == -1 {
 		MaxGo = count
 	} else {
-		MaxGo = MaxGORO
+		MaxGo = *MaxGORO
 	}
 	Schedule := make(chan byte, MaxGo)
 	// init Channel
