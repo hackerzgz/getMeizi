@@ -42,7 +42,7 @@ const (
 
 var (
 	// FilePath Set Download Path.
-	FilePath = kingpin.Flag("root", "set up download images root.").Short('r').Required().String()
+	FilePath = kingpin.Flag("root", "set up download images root.").Short('r').Default(".").String()
 	// downImages Set Download Number.
 	downImages = kingpin.Flag("images", "set up the number of download images").Short('n').Default("10").String()
 	// downPage Set images Page.
@@ -194,4 +194,10 @@ func CheckDirPathVaild(filepath string) string {
 		fpByte = append(fpByte, '/')
 	}
 	return string(fpByte)
+}
+
+// TestOnly  support to test
+func TestOnly() error {
+	fmt.Println("getMeizi Version: ", Version)
+	return nil
 }
