@@ -15,6 +15,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+//go:generate echo helloworld
+
 // APIJSON 注意，转换JSON的时候首字母必须大写，否则转换不成功
 type APIJSON struct {
 	Err     bool           `json:"error"`
